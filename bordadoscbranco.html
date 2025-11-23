@@ -1,0 +1,778 @@
+<!DOCTYPE html>
+<html lang="pt-PT">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Bordado de Castelo Branco - Património Vivo</title>
+    
+    <!-- Importar Fontes Google (iguais à referência) -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Lato:wght@400;700&family=Merriweather:wght@300;700&display=swap" rel="stylesheet">
+
+    <!-- Ícones Lucide -->
+    <script src="https://unpkg.com/lucide@latest"></script>
+
+    <style>
+        :root {
+            /* Paleta de Cores adaptada ao tema, mantendo a estrutura da referência */
+            --cor-primaria: #7e22ce; /* Roxo vibrante (Símbolo de nobreza/riqueza do bordado) */
+            --cor-primaria-clara: #a855f7;
+            --cor-secundaria: #d97706; /* Dourado/Amarelo do fio de seda */
+            --cor-fundo-app: #fffbeb; /* Tom creme/linho */
+            --cor-fundo-body: #f3f4f6;
+            --cor-texto-principal: #374151;
+            --cor-texto-titulo: #581c87;
+            --cor-sucesso: #059669;
+            --cor-erro: #dc2626;
+            --sombra: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+            --raio-borda: 1rem;
+        }
+
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+
+        body {
+            font-family: 'Lato', sans-serif;
+            background-color: var(--cor-fundo-body);
+            color: var(--cor-texto-principal);
+            line-height: 1.6;
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+        }
+
+        /* --- HEADER --- */
+        header {
+            background: linear-gradient(135deg, var(--cor-primaria), var(--cor-texto-titulo));
+            color: white;
+            padding: 1.5rem;
+            text-align: center;
+            box-shadow: var(--sombra);
+            position: sticky;
+            top: 0;
+            z-index: 100;
+        }
+
+        header h1 {
+            font-family: 'Merriweather', serif;
+            font-size: 1.5rem;
+            margin-bottom: 0.5rem;
+        }
+
+        header p { font-size: 0.9rem; opacity: 0.9; }
+
+        /* --- NAVEGAÇÃO --- */
+        nav {
+            background-color: white;
+            padding: 0.5rem;
+            display: flex;
+            justify-content: center;
+            gap: 0.5rem;
+            flex-wrap: wrap;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+        }
+
+        .nav-btn {
+            background: none;
+            border: none;
+            padding: 0.5rem 1rem;
+            cursor: pointer;
+            font-weight: 700;
+            color: var(--cor-texto-principal);
+            border-radius: 0.5rem;
+            transition: all 0.3s ease;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            font-size: 0.9rem;
+        }
+
+        .nav-btn:hover { background-color: #f3f4f6; color: var(--cor-primaria); }
+        .nav-btn.active { background-color: var(--cor-primaria-clara); color: white; }
+
+        /* --- CONTENTOR PRINCIPAL --- */
+        main {
+            flex: 1;
+            padding: 1.5rem;
+            max-width: 900px;
+            margin: 0 auto;
+            width: 100%;
+        }
+
+        .section { display: none; animation: fadeIn 0.5s ease; }
+        .section.active { display: block; }
+
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+
+        /* --- CARTÕES E CONTENTORES --- */
+        .card {
+            background: white;
+            border-radius: var(--raio-borda);
+            padding: 1.5rem;
+            box-shadow: var(--sombra);
+            margin-bottom: 1.5rem;
+            border-left: 5px solid var(--cor-secundaria);
+        }
+
+        h2 {
+            font-family: 'Merriweather', serif;
+            color: var(--cor-texto-titulo);
+            margin-bottom: 1rem;
+            border-bottom: 2px solid var(--cor-fundo-app);
+            padding-bottom: 0.5rem;
+        }
+        
+        h3 { color: var(--cor-primaria); margin-top: 1rem; margin-bottom: 0.5rem; }
+
+        /* --- HOME --- */
+        .welcome-hero {
+            text-align: center;
+            padding: 2rem;
+        }
+        .input-group { margin: 1.5rem 0; }
+        input[type="text"] {
+            padding: 0.8rem;
+            border: 2px solid #e5e7eb;
+            border-radius: 0.5rem;
+            font-size: 1rem;
+            width: 100%;
+            max-width: 300px;
+            text-align: center;
+        }
+        .btn-primary {
+            background-color: var(--cor-primaria);
+            color: white;
+            padding: 0.8rem 2rem;
+            border: none;
+            border-radius: 0.5rem;
+            font-size: 1rem;
+            cursor: pointer;
+            font-weight: bold;
+            transition: transform 0.2s;
+            box-shadow: 0 4px 6px rgba(109, 40, 217, 0.3);
+        }
+        .btn-primary:hover { transform: translateY(-2px); background-color: var(--cor-primaria-clara); }
+
+        /* --- SALA DE ESTUDO (Accordion style) --- */
+        .topic { margin-bottom: 1rem; }
+        .topic-header {
+            background-color: #f9fafb;
+            padding: 1rem;
+            cursor: pointer;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            border-radius: 0.5rem;
+            font-weight: bold;
+        }
+        .topic-header:hover { background-color: #f3f4f6; }
+        .topic-content {
+            padding: 1rem;
+            border: 1px solid #f3f4f6;
+            border-top: none;
+            display: none;
+            background: white;
+            border-bottom-left-radius: 0.5rem;
+            border-bottom-right-radius: 0.5rem;
+        }
+        .topic-content.open { display: block; }
+
+        /* --- FLASHCARDS --- */
+        .flashcard-container {
+            perspective: 1000px;
+            width: 100%;
+            height: 300px;
+            cursor: pointer;
+            margin: 1rem 0;
+        }
+        .flashcard-inner {
+            position: relative;
+            width: 100%;
+            height: 100%;
+            text-align: center;
+            transition: transform 0.6s;
+            transform-style: preserve-3d;
+            border-radius: var(--raio-borda);
+            box-shadow: var(--sombra);
+        }
+        .flashcard-container.flipped .flashcard-inner { transform: rotateY(180deg); }
+        .flashcard-front, .flashcard-back {
+            position: absolute;
+            width: 100%;
+            height: 100%;
+            backface-visibility: hidden;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 2rem;
+            font-size: 1.2rem;
+            flex-direction: column;
+            border-radius: var(--raio-borda);
+        }
+        .flashcard-front { background-color: white; color: var(--cor-texto-titulo); border: 2px solid var(--cor-primaria-clara); }
+        .flashcard-back { background-color: var(--cor-primaria); color: white; transform: rotateY(180deg); }
+        
+        .flashcard-controls {
+            display: flex;
+            justify-content: center;
+            gap: 1rem;
+            margin-top: 1rem;
+        }
+
+        /* --- QUIZ --- */
+        .quiz-question { font-size: 1.1rem; margin-bottom: 1.5rem; font-weight: bold; }
+        .options-grid { display: grid; gap: 0.8rem; }
+        .option-btn {
+            padding: 1rem;
+            text-align: left;
+            background: white;
+            border: 2px solid #e5e7eb;
+            border-radius: 0.5rem;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+        .option-btn:hover { border-color: var(--cor-primaria-clara); background-color: #f9fafb; }
+        .option-btn.correct { background-color: #d1fae5; border-color: var(--cor-sucesso); color: var(--cor-sucesso); }
+        .option-btn.wrong { background-color: #fee2e2; border-color: var(--cor-erro); color: var(--cor-erro); }
+
+        /* --- MULTIMÉDIA & ZOOM --- */
+        .media-container {
+            width: 100%;
+            border-radius: var(--raio-borda);
+            overflow: hidden;
+            box-shadow: var(--sombra);
+            background: #000;
+            margin-bottom: 1rem;
+            position: relative;
+        }
+        
+        /* Cursor de lupa para indicar que é clicável */
+        .zoomable {
+            cursor: zoom-in;
+            transition: transform 0.3s ease;
+        }
+        .zoomable:hover {
+            opacity: 0.9;
+        }
+
+        /* Lightbox (Zoom Ecrã Inteiro) */
+        .lightbox {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.9);
+            z-index: 1000;
+            justify-content: center;
+            align-items: center;
+            cursor: zoom-out;
+            animation: fadeIn 0.3s ease;
+        }
+        .lightbox.active {
+            display: flex;
+        }
+        .lightbox img {
+            max-width: 95%;
+            max-height: 95%;
+            border-radius: 0.5rem;
+            box-shadow: 0 0 20px rgba(0,0,0,0.5);
+            object-fit: contain;
+        }
+        .lightbox-hint {
+            position: absolute;
+            bottom: 2rem;
+            color: white;
+            background: rgba(0,0,0,0.5);
+            padding: 0.5rem 1rem;
+            border-radius: 2rem;
+            font-size: 0.9rem;
+        }
+
+        img.responsive-img {
+            width: 100%;
+            height: auto;
+            display: block;
+        }
+        video.responsive-video {
+            width: 100%;
+            height: auto;
+            display: block;
+        }
+
+        /* --- REPORT --- */
+        .score-circle {
+            width: 150px;
+            height: 150px;
+            border-radius: 50%;
+            background: var(--cor-primaria);
+            color: white;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 3rem;
+            font-weight: bold;
+            margin: 0 auto 2rem auto;
+            box-shadow: 0 0 20px rgba(124, 58, 237, 0.4);
+        }
+        .badge {
+            display: inline-block;
+            padding: 0.5rem 1.5rem;
+            border-radius: 2rem;
+            background: var(--cor-secundaria);
+            color: white;
+            font-weight: bold;
+            margin-bottom: 1rem;
+        }
+        
+        /* Utilitários */
+        .hidden { display: none; }
+        .text-center { text-align: center; }
+        .mt-4 { margin-top: 1rem; }
+        .mb-4 { margin-bottom: 1rem; }
+        .w-full { width: 100%; }
+    </style>
+</head>
+<body>
+
+    <!-- Lightbox Container -->
+    <div id="lightbox" class="lightbox" onclick="closeLightbox()">
+        <img id="lightbox-img" src="" alt="Zoom Infografia">
+        <div class="lightbox-hint">Clica em qualquer lugar para fechar</div>
+    </div>
+
+    <header>
+        <h1>Bordado de Castelo Branco</h1>
+        <p>História, Tradição e Inovação</p>
+    </header>
+
+    <nav id="main-nav" class="hidden">
+        <button class="nav-btn" onclick="goToSection('study')"><i data-lucide="book-open"></i> Sala de Estudo</button>
+        <button class="nav-btn" onclick="goToSection('infografia')"><i data-lucide="image"></i> Infografia</button>
+        <button class="nav-btn" onclick="goToSection('video')"><i data-lucide="video"></i> Vídeo</button>
+        <button class="nav-btn" onclick="goToSection('flashcards')"><i data-lucide="layers"></i> Cartões</button>
+        <button class="nav-btn" onclick="goToSection('quiz')"><i data-lucide="help-circle"></i> Questionário</button>
+    </nav>
+
+    <main>
+        <!-- SECÇÃO INICIAL -->
+        <section id="home" class="section active">
+            <div class="card welcome-hero">
+                <div style="font-size: 3rem; margin-bottom: 1rem;">🪡</div>
+                <h2>Bem-vindo à Jornada do Bordado</h2>
+                <p>Descobre os segredos do bordado de Castelo Branco, desde a rota da seda até à ponta da agulha.</p>
+                
+                <div class="input-group">
+                    <input type="text" id="student-name" placeholder="Como te chamas?">
+                </div>
+                <button id="btn-start" class="btn-primary">Começar Aventura</button>
+            </div>
+        </section>
+
+        <!-- SECÇÃO SALA DE ESTUDO -->
+        <section id="study" class="section">
+            <div class="card">
+                <h2><i data-lucide="book-open"></i> Sala de Estudo</h2>
+                <p class="mb-4">Explora os temas abaixo para aprenderes sobre a história e técnica.</p>
+
+                <!-- Tópico 1 -->
+                <div class="topic">
+                    <div class="topic-header" onclick="toggleTopic(this)">
+                        <span>1. Origens e História</span>
+                        <i data-lucide="chevron-down"></i>
+                    </div>
+                    <div class="topic-content">
+                        <p><strong>Raízes no Século XVII:</strong> O Bordado de Castelo Branco é um <em>ex-libris</em> da cidade e um símbolo da identidade portuguesa. As suas raízes remontam ao século XVII.</p>
+                        <p><strong>Nobreza e Enxovais:</strong> Inicialmente, estas peças estavam associadas à nobreza e às classes abastadas, fazendo frequentemente parte de enxovais de casamento como símbolo de riqueza e status.</p>
+                        <p><strong>Reconhecimento UNESCO:</strong> Em 2016, a arte do Bordado de Castelo Branco foi classificada como Património Cultural Imaterial, garantindo a sua preservação para gerações futuras.</p>
+                    </div>
+                </div>
+
+                <!-- Tópico 2 -->
+                <div class="topic">
+                    <div class="topic-header" onclick="toggleTopic(this)">
+                        <span>2. Materiais: Linho e Seda</span>
+                        <i data-lucide="chevron-down"></i>
+                    </div>
+                    <div class="topic-content">
+                        <p>A união de dois elementos naturais define esta arte:</p>
+                        <ul>
+                            <li><strong>Linho (A Base):</strong> Cultivado tradicionalmente na região, o linho serve como uma "tela" robusta e resistente, fundamental para suportar os bordados intrincados.</li>
+                            <li><strong>Seda Natural (O Brilho):</strong> Produzida pelo bicho-da-seda (<em>Bombyx mori</em>), que se alimenta de folhas de amoreira abundantes na região. A seda confere luz, cor e o estatuto de "bordado rico".</li>
+                        </ul>
+                        <p class="mt-4"><strong>Curiosidade Biológica:</strong> O bicho-da-seda é domesticado há 5000 anos, incapaz de voar e dependente do ser humano. O seu casulo cria um fio contínuo que revolucionou o comércio mundial.</p>
+                    </div>
+                </div>
+
+                <!-- Tópico 3 -->
+                <div class="topic">
+                    <div class="topic-header" onclick="toggleTopic(this)">
+                        <span>3. Técnica e Simbologia</span>
+                        <i data-lucide="chevron-down"></i>
+                    </div>
+                    <div class="topic-content">
+                        <p><strong>Bordado a Frouxo:</strong> O ponto característico é o "Ponto de Castelo Branco" ou "ponto largo". A técnica é chamada historicamente de "bordado a frouxo" porque o fio de seda utilizado é pouco torcido (frouxo). Isso permite que o fio cubra melhor o linho e crie mais relevo e densidade.</p>
+                        <p><strong>Simbologia:</strong> Os motivos não são aleatórios. Narram cenas bíblicas, caçadas ou factos heróicos. Comuns são a "Árvore da Vida", os pássaros (muitas vezes aos pares) e corações, simbolizando fertilidade, amor e natureza.</p>
+                    </div>
+                </div>
+
+                <!-- Tópico 4 -->
+                <div class="topic">
+                    <div class="topic-header" onclick="toggleTopic(this)">
+                        <span>4. Atualidade e Futuro</span>
+                        <i data-lucide="chevron-down"></i>
+                    </div>
+                    <div class="topic-content">
+                        <p>Hoje, o Bordado de Castelo Branco não é apenas uma peça de museu. Ele reinventa-se em vestuário e decoração moderna.</p>
+                        <p><strong>Preservação:</strong> O Centro de Interpretação, o Museu da Seda e a Oficina-Escola (que reúne bordadoras) são essenciais. Desafios como a falta de jovens artesãos são combatidos com formação e parcerias com designers contemporâneos.</p>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="text-center">
+                <button class="btn-primary" onclick="goToSection('flashcards')">Praticar com Flashcards</button>
+            </div>
+        </section>
+
+        <!-- SECÇÃO INFOGRAFIA -->
+        <section id="infografia" class="section">
+            <div class="card">
+                <h2><i data-lucide="image"></i> Infografia do Bordado</h2>
+                <p class="mb-4">Analisa os detalhes visuais desta arte tradicional. <strong>Clica na imagem para ampliar.</strong></p>
+                <div class="media-container">
+                    <!-- Imagem com classe zoomable e evento onclick -->
+                    <img src="./bordadoscastelobranco.jpg" 
+                         alt="Infografia Bordado de Castelo Branco" 
+                         class="responsive-img zoomable" 
+                         onclick="openLightbox(this.src)"
+                         onerror="this.src='https://placehold.co/600x400?text=Imagem+Bordado+Indisponível'">
+                </div>
+            </div>
+        </section>
+
+        <!-- SECÇÃO VÍDEO -->
+        <section id="video" class="section">
+            <div class="card">
+                <h2><i data-lucide="video"></i> Vídeo Resumo</h2>
+                <p class="mb-4">Assiste ao vídeo documental sobre a tradição.</p>
+                <div class="media-container">
+                    <video controls class="responsive-video">
+                        <source src="./bordadosdecastelobranco.mp4" type="video/mp4">
+                        O teu navegador não suporta a tag de vídeo.
+                    </video>
+                </div>
+            </div>
+        </section>
+
+        <!-- SECÇÃO FLASHCARDS -->
+        <section id="flashcards" class="section">
+            <div class="card">
+                <h2><i data-lucide="layers"></i> Cartões de Estudo</h2>
+                <p>Clica no cartão para ver a resposta. Navega para o próximo.</p>
+                
+                <div class="flashcard-container" onclick="this.classList.toggle('flipped')">
+                    <div class="flashcard-inner">
+                        <div class="flashcard-front">
+                            <p id="fc-question">Carregando...</p>
+                            <small style="margin-top:1rem; color: #999;">(Clica para virar)</small>
+                        </div>
+                        <div class="flashcard-back">
+                            <p id="fc-answer">...</p>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="flashcard-controls">
+                    <button class="btn-primary" onclick="prevFlashcard()" style="background-color: #9ca3af;">Anterior</button>
+                    <span id="fc-counter" style="align-self: center; font-weight: bold;">1/10</span>
+                    <button class="btn-primary" onclick="nextFlashcard()">Próximo</button>
+                </div>
+            </div>
+            <div class="text-center mt-4">
+                <button class="btn-primary" onclick="initQuiz(); goToSection('quiz');" style="background-color: var(--cor-secundaria);">Fazer Questionário Final</button>
+            </div>
+        </section>
+
+        <!-- SECÇÃO QUIZ -->
+        <section id="quiz" class="section">
+            <div class="card">
+                <h2><i data-lucide="help-circle"></i> Quiz de Conhecimentos</h2>
+                <div id="quiz-container">
+                    <p class="mb-4">Pergunta <span id="q-number">1</span> de <span id="q-total">5</span></p>
+                    <div class="quiz-question" id="quiz-question-text">Pergunta aqui...</div>
+                    <div class="options-grid" id="quiz-options">
+                        <!-- Opções geradas via JS -->
+                    </div>
+                    <!-- Botão Próxima Pergunta (Inicialmente Oculto) -->
+                    <div class="text-center mt-4">
+                        <button id="btn-next-q" class="btn-primary hidden w-full" onclick="nextQuestion()">Próxima Pergunta ➔</button>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- SECÇÃO REPORT FINAL -->
+        <section id="report" class="section">
+            <div class="card text-center">
+                <h2>Resultado Final</h2>
+                <div class="score-circle">
+                    <span id="final-score">0%</span>
+                </div>
+                <div id="classification-badge" class="badge">Iniciado</div>
+                <p id="report-msg" style="font-size: 1.2rem;">Mensagem...</p>
+                <p class="mt-4">Aluno(a): <strong id="report-name">Nome</strong></p>
+                
+                <div class="mt-4">
+                    <button class="btn-primary" id="btn-restart">Reiniciar Jornada</button>
+                </div>
+            </div>
+        </section>
+    </main>
+
+    <script>
+        // Inicializar Ícones
+        lucide.createIcons();
+
+        // --- DADOS DO APLICATIVO ---
+        const flashcardsData = [
+            { q: "Em que século se situam as origens históricas do Bordado de Castelo Branco?", a: "As suas raízes remontam ao século XVII." },
+            { q: "Inicialmente, a que classes sociais estava associado o Bordado de Castelo Branco?", a: "Estava associado à nobreza e às classes mais abastadas." },
+            { q: "Qual era a utilização comum das primeiras peças, simbolizando riqueza?", a: "Eram frequentemente usadas como enxovais de casamento." },
+            { q: "Quais são os dois materiais fundamentais que definem o Bordado?", a: "O tecido de base de linho e o fio de seda natural." },
+            { q: "Qual é a principal função do tecido de linho?", a: "Servir como uma base resistente e duradoura para os bordados." },
+            { q: "Que qualidade estética principal o fio de seda confere?", a: "Confere um brilho e uma textura únicos (Bordado Rico)." },
+            { q: "Qual é o nome do ponto mais característico?", a: "É o Ponto de Castelo Branco, historicamente conhecido como 'ponto largo'." },
+            { q: "O que significa a expressão 'a frouxo'?", a: "Refere-se ao facto de o fio de seda utilizado ser pouco torcido." },
+            { q: "Qual era a designação técnica histórica relacionada com o fio?", a: "Bordado a frouxo." },
+            { q: "Que instituição foi responsável pelo Centro Sericícola na Qta. da Carapalha?", a: "APPACDM." },
+            { q: "O que se pode observar no Museu da Seda?", a: "As várias etapas do ciclo da seda, do bicho ao fio e ao produto final." },
+            { q: "O que complementa o espaço museológico e a loja?", a: "A Oficina-Escola, que reúne bordadoras e artífices." },
+            { q: "A tradição da cultura do _____ e a abundância de amoreiras estiveram na origem do desenvolvimento.", a: "Linho." },
+            { q: "Que profissionais da Índia influenciaram os bordados nos Descobrimentos?", a: "Indígenas bordadoras que se juntaram aos colchoeiros." },
+            { q: "Que tipo de cenas eram comuns nos bordados do século XVI?", a: "Cenas bíblicas, factos heroicos, caçadas e motivos orientais." },
+            { q: "Qual é um dos desafios que ameaça a continuidade do Bordado?", a: "A diminuição do interesse e a falta de artesãos jovens." },
+            { q: "O Bordado de Castelo Branco é considerado o _____ da cidade.", a: "Ex-libris." },
+            { q: "Que marco importante ocorreu em 2016?", a: "Classificação como Património Cultural Imaterial pela UNESCO." }
+        ];
+
+        const quizDataRaw = [
+            {
+                p: "Qual é o século de origem do Bordado de Castelo Branco e quais eram os materiais primários?",
+                opts: ["Século XVIII, lã e algodão", "Século XVI, linho tingido", "Século XVII, linho caseiro e seda natural", "Século XIX, algodão e viscose"],
+                correct: 2 
+            },
+            {
+                p: "Qual é o material que confere o estatuto de 'riqueza' e brilho único às peças?",
+                opts: ["O linho", "O algodão", "O fio de seda natural", "A viscose"],
+                correct: 2
+            },
+            {
+                p: "O que indicava a designação histórica 'bordado a frouxo'?",
+                opts: ["Tecido de linho frouxo", "Pontos soltos e espaçados", "Uso de bastidor frouxo", "Seda 'pouco torcida' para maior cobertura e relevo"],
+                correct: 3
+            },
+            {
+                p: "Porque foi escolhido o linho como base para o Bordado de Castelo Branco?",
+                opts: ["Por ser barato", "Pela sua disponibilidade global", "Pela durabilidade, criando uma tela robusta", "Por ser elástico"],
+                correct: 2
+            },
+            {
+                p: "Que material foi erroneamente designado por 'seda vegetal' no século XX?",
+                opts: ["Algodão", "Poliéster", "Linho", "Viscose"],
+                correct: 3
+            },
+            {
+                p: "O que permitiu o desenvolvimento desta indústria de bordados na região?",
+                opts: ["Abundância de lã", "Transporte fluvial", "Tradição de cultura do linho e da amoreira (para o bicho-da-seda)", "Produção de algodão"],
+                correct: 2
+            },
+            {
+                p: "Qual foi o marco importante de reconhecimento cultural obtido em 2016?",
+                opts: ["Criação do Centro de Interpretação", "Classificação como 'Bordado Rico'", "Reconhecimento como Património Cultural Imaterial pela UNESCO", "Visita da Casa Real"],
+                correct: 2
+            }
+        ];
+
+        // --- ESTADO DA APLICAÇÃO ---
+        const state = {
+            user: "Visitante",
+            flashcardIndex: 0,
+            quizIndex: 0,
+            score: 0
+        };
+
+        // --- FUNÇÕES DE NAVEGAÇÃO ---
+        function goToSection(sectionId) {
+            document.querySelectorAll('.section').forEach(el => el.classList.remove('active'));
+            document.querySelectorAll('.nav-btn').forEach(el => el.classList.remove('active'));
+            document.getElementById(sectionId).classList.add('active');
+            
+            if (sectionId !== 'home') {
+                document.getElementById('main-nav').classList.remove('hidden');
+                const buttons = document.querySelectorAll('.nav-btn');
+                if(sectionId === 'study') buttons[0].classList.add('active');
+                if(sectionId === 'infografia') buttons[1].classList.add('active');
+                if(sectionId === 'video') buttons[2].classList.add('active');
+                if(sectionId === 'flashcards') buttons[3].classList.add('active');
+                if(sectionId === 'quiz') buttons[4].classList.add('active');
+            }
+            window.scrollTo(0, 0);
+
+            // CORREÇÃO: Inicializar o Quiz se a grelha de opções estiver vazia ao navegar para o Quiz
+            if (sectionId === 'quiz') {
+                const optsContainer = document.getElementById('quiz-options');
+                if (optsContainer.children.length === 0) {
+                    initQuiz();
+                }
+            }
+        }
+
+        function toggleTopic(header) {
+            const content = header.nextElementSibling;
+            content.classList.toggle('open');
+        }
+
+        // --- LÓGICA DE ZOOM (LIGHTBOX) ---
+        function openLightbox(src) {
+            const lb = document.getElementById('lightbox');
+            const img = document.getElementById('lightbox-img');
+            img.src = src;
+            lb.classList.add('active');
+        }
+
+        function closeLightbox() {
+            document.getElementById('lightbox').classList.remove('active');
+        }
+
+        // --- LÓGICA FLASHCARDS ---
+        function loadFlashcard(index) {
+            const card = flashcardsData[index];
+            document.getElementById('fc-question').textContent = card.q;
+            document.getElementById('fc-answer').textContent = card.a;
+            document.getElementById('fc-counter').textContent = `${index + 1}/${flashcardsData.length}`;
+            document.querySelector('.flashcard-container').classList.remove('flipped');
+        }
+
+        function nextFlashcard() {
+            if (state.flashcardIndex < flashcardsData.length - 1) {
+                state.flashcardIndex++;
+                loadFlashcard(state.flashcardIndex);
+            }
+        }
+
+        function prevFlashcard() {
+            if (state.flashcardIndex > 0) {
+                state.flashcardIndex--;
+                loadFlashcard(state.flashcardIndex);
+            }
+        }
+
+        // --- LÓGICA QUIZ ---
+        function initQuiz() {
+            state.quizIndex = 0;
+            state.score = 0;
+            loadQuestion();
+            document.getElementById('q-total').textContent = quizDataRaw.length;
+        }
+
+        function loadQuestion() {
+            // Resetar UI
+            document.getElementById('btn-next-q').classList.add('hidden');
+            
+            const qData = quizDataRaw[state.quizIndex];
+            document.getElementById('q-number').textContent = state.quizIndex + 1;
+            document.getElementById('quiz-question-text').textContent = qData.p;
+            
+            const optsContainer = document.getElementById('quiz-options');
+            optsContainer.innerHTML = '';
+
+            qData.opts.forEach((opt, idx) => {
+                const btn = document.createElement('button');
+                btn.className = 'option-btn';
+                btn.textContent = opt;
+                btn.onclick = () => checkAnswer(idx, qData.correct, btn);
+                optsContainer.appendChild(btn);
+            });
+        }
+
+        function checkAnswer(selectedIdx, correctIdx, btnElement) {
+            // Desativar cliques
+            const allBtns = document.querySelectorAll('.option-btn');
+            allBtns.forEach(b => b.onclick = null);
+
+            if (selectedIdx === correctIdx) {
+                btnElement.classList.add('correct');
+                state.score++;
+            } else {
+                btnElement.classList.add('wrong');
+                // Mostrar a correta
+                allBtns[correctIdx].classList.add('correct');
+            }
+
+            // MOSTRAR BOTÃO PRÓXIMO em vez de setTimeout
+            document.getElementById('btn-next-q').classList.remove('hidden');
+        }
+
+        function nextQuestion() {
+            state.quizIndex++;
+            if (state.quizIndex < quizDataRaw.length) {
+                loadQuestion();
+            } else {
+                showReport();
+            }
+        }
+
+        function showReport() {
+            goToSection('report');
+            const pct = Math.round((state.score / quizDataRaw.length) * 100);
+            
+            document.getElementById('report-name').textContent = state.user;
+            document.getElementById('final-score').textContent = `${pct}%`;
+
+            let classification = "";
+            let msg = "";
+            let badgeColor = "";
+
+            if (pct < 50) {
+                classification = "Aprendiz";
+                badgeColor = "#dc2626";
+                msg = "Precisas de rever a Sala de Estudo. Tenta de novo!";
+            } else if (pct < 80) {
+                classification = "Artífice";
+                badgeColor = "#d97706";
+                msg = "Bom trabalho! Já tens um conhecimento sólido sobre a tradição.";
+            } else {
+                classification = "Mestre Bordador";
+                badgeColor = "#7e22ce"; 
+                msg = "Excelente! Dominas a arte e a história de Castelo Branco! 🏆";
+            }
+
+            const badge = document.getElementById('classification-badge');
+            badge.textContent = classification;
+            badge.style.background = badgeColor;
+            document.getElementById('report-msg').textContent = msg;
+        }
+
+        // --- EVENT LISTENER LOAD ---
+        window.addEventListener('DOMContentLoaded', () => {
+            loadFlashcard(0);
+
+            document.getElementById('btn-start').onclick = () => {
+                const nameInput = document.getElementById('student-name');
+                if (nameInput.value.trim() !== "") {
+                    state.user = nameInput.value;
+                }
+                goToSection('study');
+            };
+
+            document.getElementById('btn-restart').onclick = () => {
+                state.score = 0;
+                state.quizIndex = 0;
+                goToSection('study');
+            };
+        });
+
+    </script>
+</body>
+</html>
