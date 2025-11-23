@@ -1,0 +1,1304 @@
+<!DOCTYPE html>
+<html lang="pt-PT">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>A Jornada da Seda - App Educativa Interativa</title>
+    
+    <!-- Importar Fontes Google -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Lato:wght@400;700&family=Merriweather:wght@300;700&display=swap" rel="stylesheet">
+
+    <!-- ESTILOS CSS -->
+    <style>
+        :root {
+            /* Paleta de Cores "Rota da Seda" */
+            --cor-primaria: #6d28d9; /* Roxo Imperial */
+            --cor-primaria-clara: #8b5cf6;
+            --cor-secundaria: #d97706; /* Ouro/Especiarias */
+            --cor-fundo-app: #fffbeb; /* Creme suave */
+            --cor-fundo-body: #f3f4f6;
+            --cor-texto-principal: #374151;
+            --cor-texto-titulo: #4c1d95;
+            --cor-sucesso: #059669;
+            --cor-erro: #dc2626;
+            
+            /* UI Elements */
+            --sombra-suave: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+            --sombra-forte: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
+            --borda-raio: 12px;
+        }
+
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+
+        body {
+            font-family: 'Lato', sans-serif;
+            background-color: #f8fafc;
+            background-image: 
+                radial-gradient(circle at 10% 20%, rgba(109, 40, 217, 0.05) 0%, transparent 20%),
+                radial-gradient(circle at 90% 80%, rgba(217, 119, 6, 0.05) 0%, transparent 20%);
+            color: var(--cor-texto-principal);
+            line-height: 1.6;
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            padding: 1rem;
+        }
+
+        .app-container {
+            width: 100%;
+            max-width: 900px;
+            background-color: var(--cor-fundo-app);
+            border-radius: var(--borda-raio);
+            box-shadow: var(--sombra-forte);
+            overflow: hidden;
+            margin: 2rem 0;
+            position: relative;
+            border: 1px solid rgba(0,0,0,0.05);
+        }
+
+        /* Cabeçalho */
+        header {
+            background: linear-gradient(135deg, var(--cor-primaria), var(--cor-primaria-clara));
+            color: white;
+            padding: 2rem;
+            text-align: center;
+        }
+
+        header h1 {
+            font-family: 'Merriweather', serif;
+            font-size: 2.2rem;
+            margin-bottom: 0.5rem;
+            text-shadow: 0 2px 4px rgba(0,0,0,0.2);
+        }
+
+        /* Barra de Progresso */
+        .journey-progress-bar {
+            display: flex;
+            justify-content: space-between;
+            padding: 1rem 0.5rem;
+            background-color: white;
+            border-bottom: 1px solid #e5e7eb;
+            overflow-x: auto;
+        }
+
+        .step {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            position: relative;
+            flex: 1;
+            min-width: 60px;
+        }
+
+        .step:not(:last-child)::after {
+            content: '';
+            position: absolute;
+            top: 14px;
+            left: 50%;
+            width: 100%;
+            height: 2px;
+            background-color: #e5e7eb;
+            z-index: 1;
+        }
+
+        .step.active:not(:last-child)::after { background-color: var(--cor-primaria); }
+
+        .step-circle {
+            width: 30px;
+            height: 30px;
+            border-radius: 50%;
+            background-color: #e5e7eb;
+            color: #6b7280;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: bold;
+            font-size: 0.9rem;
+            z-index: 2;
+            transition: all 0.3s ease;
+            border: 2px solid #fff;
+        }
+
+        .step.active .step-circle {
+            background-color: var(--cor-primaria);
+            color: white;
+            box-shadow: 0 0 0 3px rgba(109, 40, 217, 0.2);
+        }
+
+        .step.completed .step-circle { background-color: var(--cor-sucesso); color: white; }
+        .step-label { font-size: 0.75rem; margin-top: 0.5rem; color: #6b7280; font-weight: 600; }
+        .step.active .step-label { color: var(--cor-primaria); }
+
+        /* Secções Gerais */
+        .app-section { padding: 2.5rem; animation: slideIn 0.5s ease-out; min-height: 400px; }
+        .app-section.hidden { display: none; }
+        @keyframes slideIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+
+        h2 {
+            font-family: 'Merriweather', serif;
+            color: var(--cor-texto-titulo);
+            margin-bottom: 1.5rem;
+            font-size: 1.8rem;
+            border-bottom: 2px solid var(--cor-secundaria);
+            display: inline-block;
+            padding-bottom: 0.5rem;
+        }
+
+        /* Componentes UI */
+        .btn {
+            background-color: var(--cor-primaria);
+            color: white;
+            padding: 0.8rem 2rem;
+            border: none;
+            border-radius: 50px;
+            font-size: 1.1rem;
+            font-weight: bold;
+            cursor: pointer;
+            transition: all 0.2s;
+            box-shadow: var(--sombra-suave);
+        }
+        .btn:hover { background-color: var(--cor-primaria-clara); transform: translateY(-2px); }
+        .btn-secondary { background-color: #94a3b8; }
+        .btn-secondary:hover { background-color: #64748b; }
+        
+        .input-field {
+            width: 100%; max-width: 400px; padding: 1rem;
+            border: 2px solid #cbd5e1; border-radius: var(--borda-raio);
+        }
+
+        /* Acordeão (Estudo) */
+        .accordion-item { border: 1px solid #e2e8f0; border-radius: 8px; margin-bottom: 1rem; overflow: hidden; }
+        .accordion-header {
+            width: 100%; padding: 1.2rem; text-align: left; border: none; background: white;
+            display: flex; justify-content: space-between; font-weight: 700; color: var(--cor-primaria); cursor: pointer;
+        }
+        .accordion-header:hover { background-color: #f8fafc; }
+        .accordion-content { padding: 0; max-height: 0; overflow: hidden; transition: max-height 0.3s ease-out; background: white; }
+        .accordion-content.open { padding: 1.5rem; max-height: 2000px; }
+
+        /* Slides & Flashcards */
+        .carousel-container { background: #000; border-radius: 8px; overflow: hidden; margin: 0 auto; max-width: 800px; }
+        .slide-display { min-height: 300px; display: flex; align-items: center; justify-content: center; background: #1f2937; }
+        .slide-img { max-width: 100%; max-height: 500px; object-fit: contain; cursor: zoom-in; }
+        .carousel-controls { display: flex; justify-content: space-between; padding: 1rem; background: #f3f4f6; align-items: center; }
+        .carousel-btn { padding: 0.5rem 1rem; border-radius: 6px; border: 1px solid #ccc; background: white; cursor: pointer; }
+        
+        /* Flashcards 3D */
+        .flashcard-wrapper { display: flex; flex-direction: column; align-items: center; gap: 2rem; margin-top: 2rem; }
+        .flashcard-container { perspective: 1000px; width: 100%; max-width: 600px; height: 350px; cursor: pointer; }
+        .flashcard-inner { position: relative; width: 100%; height: 100%; transition: transform 0.6s; transform-style: preserve-3d; }
+        .flashcard-inner.flipped { transform: rotateY(180deg); }
+        .flashcard-front, .flashcard-back {
+            position: absolute; width: 100%; height: 100%; backface-visibility: hidden;
+            display: flex; flex-direction: column; justify-content: center; align-items: center;
+            padding: 2rem; border-radius: 16px; background: white; border: 1px solid #e2e8f0; text-align: center;
+            box-shadow: var(--sombra-forte);
+        }
+        .flashcard-back { transform: rotateY(180deg); background: #f5f3ff; border-color: var(--cor-primaria-clara); }
+        .flashcard-content { font-family: 'Merriweather', serif; font-size: 1.3rem; color: var(--cor-texto-titulo); }
+        .flashcard-label { text-transform: uppercase; font-size: 0.8rem; letter-spacing: 2px; color: #64748b; margin-bottom: 1rem; }
+
+        /* QUIZ */
+        .quiz-header {
+            display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.5rem;
+            background-color: #f3f4f6; padding: 1rem; border-radius: 8px;
+        }
+        
+        .question-title-row { display: flex; align-items: flex-start; gap: 1rem; margin-bottom: 1.5rem; }
+        #question-text { font-size: 1.3rem; font-weight: 600; color: var(--cor-texto-titulo); flex: 1; }
+        
+        /* Botão Dica */
+        .hint-btn {
+            background: #fbbf24; color: #78350f; border: none; border-radius: 50%;
+            width: 40px; height: 40px; font-size: 1.2rem; cursor: pointer; flex-shrink: 0;
+            display: flex; align-items: center; justify-content: center;
+            box-shadow: var(--sombra-suave); transition: transform 0.2s;
+        }
+        .hint-btn:hover { transform: scale(1.1); }
+        .hint-box {
+            background-color: #fffbeb; border-left: 4px solid #fbbf24; color: #92400e;
+            padding: 1rem; margin-bottom: 1.5rem; border-radius: 4px; font-style: italic;
+            animation: fadeIn 0.3s;
+        }
+
+        .options-grid { display: grid; grid-template-columns: 1fr; gap: 1rem; }
+        .option-btn {
+            background-color: white; border: 2px solid #e2e8f0; padding: 1.2rem;
+            border-radius: var(--borda-raio); text-align: left; font-size: 1rem;
+            cursor: pointer; transition: all 0.2s;
+        }
+        .option-btn:hover:not([disabled]) { border-color: var(--cor-primaria-clara); background-color: #f5f3ff; }
+        
+        /* Feedback Quiz */
+        .option-btn.correct { background-color: #d1fae5; border-color: var(--cor-sucesso); color: #064e3b; position: relative; }
+        .option-btn.wrong { background-color: #fee2e2; border-color: var(--cor-erro); color: #991b1b; opacity: 0.8; }
+        .option-btn.correct::after { content: '✓'; position: absolute; right: 1rem; font-weight: bold; }
+        
+        .feedback-box {
+            margin-top: 1.5rem; padding: 1.5rem; border-radius: var(--borda-raio);
+            background-color: #f8fafc; border-left: 5px solid #cbd5e1; font-size: 1rem;
+        }
+        .feedback-box.correct { border-color: var(--cor-sucesso); background-color: #ecfdf5; }
+        .feedback-box.wrong { border-color: var(--cor-erro); background-color: #fef2f2; }
+        .feedback-box.info { border-color: var(--cor-primaria); background-color: #f3f4f6; }
+
+        /* Drag & Drop (Jogos) */
+        .game-header { text-align: center; margin-bottom: 2rem; background: #e0e7ff; padding: 1rem; border-radius: 8px; }
+        .game-area { display: grid; grid-template-columns: 1fr 1fr; gap: 2rem; }
+        
+        .draggable-item { 
+            background: white; padding: 1rem; margin-bottom: 0.8rem; 
+            border: 2px solid #cbd5e1; cursor: grab; border-radius: 8px; 
+            box-shadow: var(--sombra-suave); font-weight: bold; color: var(--cor-texto-principal);
+            transition: transform 0.2s;
+        }
+        .draggable-item:active { cursor: grabbing; transform: scale(0.98); }
+        .draggable-item.matched { background: #d1fae5; border-color: #059669; opacity: 0.6; cursor: default; }
+        
+        .drop-zone { 
+            background: #f8fafc; min-height: 70px; margin-bottom: 0.8rem; 
+            border: 2px dashed #94a3b8; border-radius: 8px; padding: 0.8rem; 
+            display: flex; flex-direction: column; justify-content: center;
+        }
+        .drop-zone-text { font-size: 0.9rem; color: #64748b; margin-bottom: 0.5rem; font-style: italic; }
+        .drop-zone.filled-correct { background: #d1fae5; border: 2px solid #059669; }
+        .drop-zone.filled-wrong { background: #fee2e2; border: 2px solid #dc2626; }
+
+        /* Relatório */
+        .report-card { background: white; padding: 3rem; border-radius: 12px; text-align: center; box-shadow: var(--sombra-forte); }
+        
+        /* Nova secção de detalhe */
+        .score-breakdown { display: flex; justify-content: center; gap: 1.5rem; margin: 2rem 0; flex-wrap: wrap; }
+        .breakdown-item { background: #f3f4f6; padding: 1.2rem; border-radius: 10px; min-width: 160px; border: 1px solid #e5e7eb; box-shadow: var(--sombra-suave); }
+        .breakdown-label { font-size: 0.9rem; color: #64748b; text-transform: uppercase; letter-spacing: 1px; margin-bottom: 0.5rem; }
+        .breakdown-value { font-size: 1.4rem; font-weight: bold; }
+        
+        .stat-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; margin: 2rem 0; text-align: center; }
+        .stat-item { background: #f8fafc; padding: 1rem; border-radius: 8px; border: 1px solid #e5e7eb; }
+        .stat-value { font-size: 1.5rem; font-weight: bold; color: var(--cor-primaria); }
+        .stat-label { font-size: 0.9rem; color: #64748b; }
+        .classification-badge { display: inline-block; padding: 0.5rem 1.5rem; border-radius: 50px; color: white; font-weight: bold; margin-top: 1rem; }
+
+        /* Modal Zoom */
+        .zoom-modal { display: none; position: fixed; z-index: 1000; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.9); justify-content: center; align-items: center; }
+        .zoom-img { max-width: 95%; max-height: 95%; }
+
+        @media (max-width: 768px) {
+            .game-area { grid-template-columns: 1fr; }
+            .step-label { display: none; }
+        }
+    </style>
+</head>
+<body>
+
+    <main class="app-container">
+        
+        <header>
+            <h1>🧵 A Jornada da Seda</h1>
+            <p>Do casulo ao tecido: uma aventura histórica e biológica</p>
+        </header>
+
+        <!-- Barra de Navegação -->
+        <div class="journey-progress-bar">
+            <div class="step active" id="step-welcome"><div class="step-circle">1</div><div class="step-label">Início</div></div>
+            <div class="step" id="step-study"><div class="step-circle">2</div><div class="step-label">Estudar</div></div>
+            <div class="step" id="step-flashcards"><div class="step-circle">3</div><div class="step-label">Cartões</div></div>
+            <div class="step" id="step-quiz"><div class="step-circle">4</div><div class="step-label">Quiz</div></div>
+            <div class="step" id="step-games"><div class="step-circle">5</div><div class="step-label">Desafios</div></div>
+            <div class="step" id="step-report"><div class="step-circle">6</div><div class="step-label">Diploma</div></div>
+        </div>
+
+        <!-- 1. BOAS-VINDAS -->
+        <section id="section-welcome" class="app-section">
+            <div style="text-align: center; margin-top: 2rem;">
+                <span style="font-size: 4rem;">🦋</span>
+                <h2>Bem-vindo(a), Explorador(a)!</h2>
+                <p>Prepare-se para viajar pela antiga Rota da Seda e descobrir os segredos do bicho-da-seda.</p>
+                <div class="input-group" style="margin: 2rem 0;">
+                    <input type="text" id="student-name" class="input-field" placeholder="Como te chamas?" autocomplete="off">
+                </div>
+                <button id="btn-start" class="btn">Iniciar Expedição ➜</button>
+            </div>
+        </section>
+
+        <!-- 2. SALA DE ESTUDO -->
+        <section id="section-study" class="app-section hidden">
+            <div style="text-align: center; margin-bottom: 1.5rem;">
+                <h2>📜 Sala de Estudo</h2>
+                <p>Explore os tópicos abaixo clicando nas secções.</p>
+            </div>
+            <div class="accordion-wrapper">
+                
+                <!-- Acordeão Infografia -->
+                <div class="accordion-item">
+                    <button class="accordion-header active"><span>📊 Infografia do Ciclo</span><span>▼</span></button>
+                    <div class="accordion-content open">
+                        <div style="text-align: center;">
+                            <img src="./ciclodaseda-infografia.jpg" alt="Infografia do Ciclo da Seda" style="max-width: 100%; border-radius: 8px;" onerror="this.style.display='none'; this.nextElementSibling.style.display='block'">
+                            <p style="display:none; color:red;">Imagem não encontrada: ./ciclodaseda-infografia.jpg</p>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Acordeão Factos -->
+                <div class="accordion-item">
+                    <button class="accordion-header"><span>🔍 Pontos Essenciais</span><span>▼</span></button>
+                    <div class="accordion-content">
+                        <ul style="padding-left: 2rem; list-style-type: disc; line-height: 1.8;">
+                            <li><strong>Alimento:</strong> Exclusivamente folhas de amoreira (<em>Morus alba</em>).</li>
+                            <li><strong>Origem:</strong> China, c. 3600 a.C.</li>
+                            <li><strong>Lenda:</strong> Descoberta pela Imperatriz Leizu.</li>
+                            <li><strong>Filamento:</strong> Um único fio de 300 a 900 metros.</li>
+                            <li><strong>Rota da Seda:</strong> Ligava a China à Europa, Índia e África.</li>
+                        </ul>
+                    </div>
+                </div>
+
+                <!-- Acordeão Carrossel -->
+                <div class="accordion-item">
+                    <button class="accordion-header"><span>📽️ Galeria de Diapositivos</span><span>▼</span></button>
+                    <div class="accordion-content">
+                        <div class="carousel-container">
+                            <div class="slide-display">
+                                <img id="current-slide-img" class="slide-img" src="./slides1.jpg" alt="Slide" onerror="this.src='data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSI0MDAiIGhlaWdodD0iMzAwIiB2aWV3Qm94PSIwIDAgNDAwIDMwMCI+PHJlY3Qgd2lkdGg9IjEwMCUiIGhlaWdodD0iMTAwJSIgZmlsbD0iIzMzMyIvPjx0ZXh0IHg9IjUwJSIgeT0iNTAlIiBkeT0iLjNlbSIgZmlsbD0id2hpdGUiIHRleHQtYW5jaG9yPSJtaWRkbGUiIGZvbnQtZmFtaWx5PSJzYW5zLXNlcmlmIiBmb250LXNpemU9IjIwIj5JbWFnZW0gbsOjbyBlbmNvbnRyYWRhPC90ZXh0Pjwvc3ZnPg=='">
+                            </div>
+                            <div class="carousel-controls">
+                                <button id="prev-slide" class="carousel-btn">◀ Anterior</button>
+                                <span id="slide-counter" style="font-weight:bold; color:var(--cor-primaria);">1 / 14</span>
+                                <button id="next-slide" class="carousel-btn">Seguinte ▶</button>
+                            </div>
+                        </div>
+                        <p style="text-align:center; font-size:0.8rem; margin-top:0.5rem; color:#666;">Clique na imagem para ampliar.</p>
+                    </div>
+                </div>
+            </div>
+            <div style="text-align: center; margin-top: 2rem;">
+                <button id="btn-to-flashcards" class="btn">Ir para Cartões de Revisão ➜</button>
+            </div>
+        </section>
+
+        <!-- 3. CARTÕES (FLASHCARDS) -->
+        <section id="section-flashcards" class="app-section hidden">
+            <div style="text-align: center;">
+                <h2>🃏 Cartões de Revisão</h2>
+                <p>Teste a sua memória antes do quiz. Toque para virar.</p>
+            </div>
+            <div class="flashcard-wrapper">
+                <div class="flashcard-container" id="flashcard-element">
+                    <div class="flashcard-inner" id="flashcard-inner">
+                        <!-- Frente -->
+                        <div class="flashcard-front">
+                            <div class="flashcard-label">Pergunta / Termo</div>
+                            <div class="flashcard-content" id="fc-front-text">Carregando...</div>
+                            <div style="margin-top:1rem; font-size:0.8rem; color:#ccc;">(Clique para virar)</div>
+                        </div>
+                        <!-- Verso -->
+                        <div class="flashcard-back">
+                            <div class="flashcard-label">Resposta / Definição</div>
+                            <div class="flashcard-content" id="fc-back-text">...</div>
+                        </div>
+                    </div>
+                </div>
+                <!-- Controlos Cartões -->
+                <div class="carousel-controls" style="width: 100%; max-width: 600px; border-radius: 50px; background: white; box-shadow: var(--sombra-suave);">
+                    <button id="fc-prev" class="carousel-btn">◀ Anterior</button>
+                    <span id="fc-counter" style="font-weight:bold; color:var(--cor-primaria);">1 / 19</span>
+                    <button id="fc-next" class="carousel-btn">Seguinte ▶</button>
+                </div>
+            </div>
+            <div style="text-align: center; margin-top: 2rem;">
+                <button id="btn-to-quiz" class="btn">Iniciar Quiz ➜</button>
+            </div>
+        </section>
+
+        <!-- 4. QUIZ (ATUALIZADO) -->
+        <section id="section-quiz" class="app-section hidden">
+            <div class="quiz-header">
+                <div><span class="badge" id="quiz-badge" style="background:var(--cor-secundaria); color:white; padding:0.3rem 0.8rem; border-radius:20px; font-weight:bold;">Questão 1</span></div>
+                <div style="font-weight: bold; color: var(--cor-primaria);">Pontos Quiz: <span id="score-display">0</span></div>
+            </div>
+
+            <div class="question-block">
+                <div class="question-title-row">
+                    <div id="question-text">A carregar pergunta...</div>
+                    <button id="hint-btn" class="hint-btn" title="Ver Dica">💡</button>
+                </div>
+
+                <div id="hint-container" class="hint-box hidden">
+                    <span>💡</span>
+                    <span id="hint-text">Dica aqui...</span>
+                </div>
+
+                <div class="options-grid" id="options-container">
+                    <!-- Opções geradas via JS -->
+                </div>
+
+                <div id="feedback-container" class="feedback-box hidden">
+                    <!-- Feedback detalhado aqui -->
+                </div>
+            </div>
+
+            <div style="text-align: right;">
+                <button id="btn-next-question" class="btn hidden">Próxima Pergunta ➜</button>
+            </div>
+        </section>
+
+        <!-- 5. JOGOS (ATUALIZADO) -->
+        <section id="section-games" class="app-section hidden">
+            <div class="game-header">
+                <h2>🧩 Desafios de Correspondência</h2>
+                <p id="game-subtitle">Grupo 1 de 4</p>
+                <!-- Mensagem de feedback anterior removida por solicitação -->
+            </div>
+
+            <div id="game-feedback-area" class="feedback-box hidden" style="margin-bottom: 1.5rem;">
+                <!-- Feedback do grupo atual aparece aqui -->
+            </div>
+            
+            <div class="game-area" id="game-play-area">
+                <div class="draggable-source" style="border:2px dashed #ccc; padding:1rem; border-radius:8px;">
+                    <h3 style="text-align:center; color:var(--cor-primaria); margin-bottom:1rem;">Termos</h3>
+                    <div id="terms-pool"></div>
+                </div>
+                <div class="drop-targets" style="border:2px dashed #ccc; padding:1rem; border-radius:8px;">
+                    <h3 style="text-align:center; color:var(--cor-primaria); margin-bottom:1rem;">Definições</h3>
+                    <div id="definitions-pool"></div>
+                </div>
+            </div>
+            
+            <div style="text-align: center; margin-top: 2rem;">
+                <button id="btn-check-game" class="btn">Verificar Respostas</button>
+                <button id="btn-next-game" class="btn hidden">Próximo Grupo ➜</button>
+                <button id="btn-finish-games" class="btn hidden">Ver Diploma ➜</button>
+            </div>
+        </section>
+
+        <!-- 6. RELATÓRIO (ATUALIZADO COM DETALHE) -->
+        <section id="section-report" class="app-section hidden">
+            <div class="report-card">
+                <h2>🎓 Diploma da Jornada da Seda</h2>
+                <h3 id="report-name" style="margin: 1rem 0; color: var(--cor-texto-titulo); font-size:1.5rem;">Aluno</h3>
+                
+                <div class="classification-badge" id="classification-badge" style="background: #999;">A Calcular...</div>
+
+                <div style="margin: 2rem 0;">
+                    <span style="font-size: 1.2rem; color:#666;">Classificação Final</span>
+                    <div class="score-display" id="final-score" style="font-size: 4rem; color: var(--cor-primaria); font-weight: 900; line-height:1;">0%</div>
+                </div>
+
+                <!-- Desempenho por Área -->
+                <div class="score-breakdown">
+                    <div class="breakdown-item">
+                        <div class="breakdown-label">Desempenho no Quiz</div>
+                        <div class="breakdown-value" id="report-quiz-score" style="color: var(--cor-primaria);">0 / 0</div>
+                    </div>
+                    <div class="breakdown-item">
+                        <div class="breakdown-label">Desempenho nos Desafios</div>
+                        <div class="breakdown-value" id="report-game-score" style="color: var(--cor-secundaria);">0 / 0</div>
+                    </div>
+                </div>
+
+                <div class="stat-grid">
+                    <div class="stat-item">
+                        <div class="stat-value" id="total-correct" style="color:var(--cor-sucesso);">0</div>
+                        <div class="stat-label">Total Respostas Certas</div>
+                    </div>
+                    <div class="stat-item">
+                        <div class="stat-value" id="total-wrong" style="color:var(--cor-erro);">0</div>
+                        <div class="stat-label">Total Respostas Erradas</div>
+                    </div>
+                </div>
+
+                <p id="report-msg" style="margin-top:1rem; font-style:italic; font-size:1.1rem;">A calcular...</p>
+                
+                <div style="margin-top: 2rem;">
+                    <button id="btn-restart" class="btn">Recomeçar Jornada ↺</button>
+                </div>
+            </div>
+        </section>
+
+    </main>
+
+    <!-- Modal Zoom -->
+    <div id="zoom-overlay" class="zoom-modal">
+        <img id="zoom-img-target" class="zoom-img" src="" alt="Zoom Slide">
+    </div>
+
+    <!-- LÓGICA JAVASCRIPT -->
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            
+            // --- ESTADO ---
+            const state = {
+                user: '',
+                quizScore: 0,
+                gameScore: 0,
+                totalCorrect: 0,
+                totalWrong: 0,
+                
+                // Quiz
+                currentQuestion: 0,
+                maxQuestions: 0, // Definido ao iniciar
+                
+                // Games
+                currentGameGroup: 0,
+                currentGroupObj: null,
+                
+                // Navigation
+                currentSlide: 1, totalSlides: 14,
+                currentFlashcard: 0, isFlipped: false
+            };
+
+            // --- CONFIGURAÇÃO PONTUAÇÃO ---
+            const POINTS_PER_QUIZ = 10;
+            const POINTS_PER_MATCH = 5;
+
+            // --- DADOS: QUIZ (Pool completa) ---
+            const questionsPool = [
+                 {
+                    q: "Qual é a principal razão pela qual a mariposa domesticada, Bombyx mori, é incapaz de voar?",
+                    hint: "Considere o impacto da reprodução seletiva no físico do inseto ao longo de milhares de anos.",
+                    options: [
+                        { text: "As suas antenas atrofiaram-se.", rationale: "A incapacidade é física/muscular, não sensorial.", correct: false },
+                        { text: "O seu corpo é demasiado grande e pesado para as suas asas.", rationale: "Correto! A seleção artificial criou corpos pesados que as asas não sustentam.", correct: true },
+                        { text: "As asas não se desenvolvem completamente.", rationale: "As asas desenvolvem-se, mas são desproporcionais ao corpo.", correct: false },
+                        { text: "Perdeu os músculos de voo.", rationale: "A razão direta é a desproporção corpo/asa.", correct: false }
+                    ]
+                },
+                {
+                    q: "Por que motivo os casulos são fervidos antes de o fio ser desenrolado?",
+                    hint: "Pense no que aconteceria ao fio se a mariposa saísse.",
+                    options: [
+                        { text: "Para esterilizar a seda.", rationale: "O objetivo principal é preservar o fio, não esterilizar.", correct: false },
+                        { text: "Para tingir a seda.", rationale: "O tingimento é posterior.", correct: false },
+                        { text: "Para amolecer o casulo.", rationale: "Facilita, mas o principal é impedir o rompimento.", correct: false },
+                        { text: "Para evitar que a mariposa rompa o fio ao emergir.", rationale: "Correto! Se a mariposa sair, quebra o fio contínuo.", correct: true }
+                    ]
+                },
+                {
+                    q: "Qual foi um dos principais impactos económicos da importação de seda no Império Romano?",
+                    hint: "Considere a balança comercial e o pagamento.",
+                    options: [
+                        { text: "Estimulou a produção local.", rationale: "Roma não produzia seda.", correct: false },
+                        { text: "Desvalorizou o ouro.", rationale: "O problema foi a saída de riqueza.", correct: false },
+                        { text: "Causou drenagem de prata para o Oriente.", rationale: "Correto! O défice comercial transferiu metais preciosos para a Ásia.", correct: true },
+                        { text: "Criou comerciantes ricos.", rationale: "O Estado via isso como prejudicial.", correct: false }
+                    ]
+                },
+                {
+                    q: "Além de vestuário, qual era uma utilização da seda na China antiga?",
+                    hint: "Pense no valor intrínseco como transação.",
+                    options: [
+                        { text: "Pigmento para tintas.", rationale: "Não era usada como pigmento.", correct: false },
+                        { text: "Pagamento de impostos e salários.", rationale: "Correto! Funcionava como 'moeda de mercadoria'.", correct: true },
+                        { text: "Troca por sementes.", rationale: "O uso sistémico como moeda é a chave.", correct: false },
+                        { text: "Velas de barcos.", rationale: "Existiu, mas não define a função económica.", correct: false }
+                    ]
+                },
+                {
+                    q: "O que indica a mudança de cor da cabeça da larva para escuro?",
+                    hint: "Acontece antes de mudar de pele.",
+                    options: [
+                        { text: "Prestes a passar pela muda.", rationale: "Correto! A cabeça nova forma-se sob a pele antiga.", correct: true },
+                        { text: "Está doente.", rationale: "É uma fase normal do crescimento.", correct: false },
+                        { text: "Vai parar de comer para sempre.", rationale: "Isso é antes do casulo, quando o corpo todo muda.", correct: false },
+                        { text: "Vai entrar na fase de pupa.", rationale: "Antes de pupar fica amarelada.", correct: false }
+                    ]
+                },
+                {
+                    q: "Qual inovação da dinastia Han melhorou a qualidade da seda?",
+                    hint: "Relacionado com a densidade do tecido.",
+                    options: [
+                        { text: "Tear a vapor.", rationale: "Invenção muito posterior.", correct: false },
+                        { text: "Corantes sintéticos.", rationale: "Apenas no séc. XIX.", correct: false },
+                        { text: "Dieta artificial.", rationale: "Desenvolvimento moderno.", correct: false },
+                        { text: "Tecidos extremamente finos (alta densidade).", rationale: "Correto! Teares avançados permitiram alta densidade.", correct: true }
+                    ]
+                },
+                {
+                    q: "Qual é o ancestral selvagem do Bombyx mori?",
+                    hint: "Tem cor de camuflagem.",
+                    options: [
+                        { text: "Antheraea pernyi.", rationale: "É outra espécie.", correct: false },
+                        { text: "Bombyx mandarina.", rationale: "Correto! É o ancestral selvagem de cor castanha.", correct: true },
+                        { text: "Samia cynthia.", rationale: "Produz seda Eri.", correct: false },
+                        { text: "Attacus atlas.", rationale: "Mariposa gigante não relacionada.", correct: false }
+                    ]
+                },
+                {
+                    q: "Quem eram os principais responsáveis pela sericicultura na China antiga?",
+                    hint: "Divisão de tarefas por género.",
+                    options: [
+                        { text: "Monges budistas.", rationale: "Não era a sua função primária.", correct: false },
+                        { text: "Funcionários do império.", rationale: "Apenas administravam.", correct: false },
+                        { text: "Mulheres.", rationale: "Correto! 'Homens lavram, mulheres tecem'.", correct: true },
+                        { text: "Soldados.", rationale: "Associação primária é feminina.", correct: false }
+                    ]
+                },
+                {
+                    q: "Quanto tempo dura a fase larval?",
+                    hint: "Fase de crescimento massivo.",
+                    options: [
+                        { text: "7 dias.", rationale: "Insuficiente.", correct: false },
+                        { text: "60 dias.", rationale: "Demasiado longo e arriscado.", correct: false },
+                        { text: "10 a 12 dias.", rationale: "Tempo de incubação dos ovos.", correct: false },
+                        { text: "20 a 30 dias.", rationale: "Correto! Tempo ideal para 5 fases de crescimento.", correct: true }
+                    ]
+                },
+                {
+                    q: "Quais as dimensões de um fio de seda?",
+                    hint: "Muito longo e muito fino.",
+                    options: [
+                        { text: "50 m / 0,5 mm.", rationale: "Curto e grosso.", correct: false },
+                        { text: "100 m / 0,25 mm.", rationale: "Ainda incorreto.", correct: false },
+                        { text: "2.000 m / 0,1 mm.", rationale: "Excessivo para a média.", correct: false },
+                        { text: "300 a 900 m / 0,025 mm.", rationale: "Correto! Extenso e microscópico.", correct: true }
+                    ]
+                },
+                {
+                    q: "Segundo a lenda, quem descobriu a seda?",
+                    hint: "Imperatriz chinesa.",
+                    options: [
+                        { text: "Marco Polo.", rationale: "Viajante posterior.", correct: false },
+                        { text: "Confúcio.", rationale: "Filósofo.", correct: false },
+                        { text: "Imperador Taizong.", rationale: "Imperador posterior.", correct: false },
+                        { text: "Imperatriz Leizu.", rationale: "Correto! A 'Deusa da Seda'.", correct: true }
+                    ]
+                },
+                {
+                    q: "Que regiões a Rota da Seda ligava?",
+                    hint: "China aos impérios do oeste.",
+                    options: [
+                        { text: "Ásia Oriental à Europa, Índia e África.", rationale: "Correto! Conexão global antiga.", correct: true },
+                        { text: "Índia à Pérsia.", rationale: "Apenas uma secção.", correct: false },
+                        { text: "Europa às Américas.", rationale: "Américas não incluídas.", correct: false },
+                        { text: "China ao Japão.", rationale: "Rota regional.", correct: false }
+                    ]
+                },
+                {
+                    q: "De onde a pupa obtém energia?",
+                    hint: "Do que comeu antes.",
+                    options: [
+                        { text: "Reservas da fase larval.", rationale: "Correto! É um sistema fechado.", correct: true },
+                        { text: "Dormência.", rationale: "Metamorfose gasta muita energia.", correct: false },
+                        { text: "Decomposição.", rationale: "Casulo não tem comida.", correct: false },
+                        { text: "Absorvendo o fio.", rationale: "Destruiria o abrigo.", correct: false }
+                    ]
+                },
+                {
+                    q: "Que seda promove a filosofia Ahimsa?",
+                    hint: "Não mata o inseto.",
+                    options: [
+                        { text: "Seda sintética.", rationale: "Não é natural.", correct: false },
+                        { text: "Seda selvagem ('Seda da Paz').", rationale: "Correto! A mariposa sai naturalmente.", correct: true },
+                        { text: "Seda de aranha.", rationale: "Sem relação direta.", correct: false },
+                        { text: "Seda de algodão.", rationale: "Não é animal.", correct: false }
+                    ]
+                },
+                {
+                    q: "Qual a função da mariposa adulta?",
+                    hint: "Apenas reprodução.",
+                    options: [
+                        { text: "Proteger ovos.", rationale: "Morre logo a seguir.", correct: false },
+                        { text: "Acasalar e depositar ovos.", rationale: "Correto! Fase reprodutiva exclusiva.", correct: true },
+                        { text: "Dispersão.", rationale: "Não voa.", correct: false },
+                        { text: "Alimentar-se.", rationale: "Não come.", correct: false }
+                    ]
+                },
+                {
+                    q: "O que é uma raça 'bivoltina'?",
+                    hint: "Frequência anual.",
+                    options: [
+                        { text: "Dois tipos de folhas.", rationale: "Incorreto.", correct: false },
+                        { text: "Híbrida.", rationale: "Incorreto.", correct: false },
+                        { text: "Dois tipos de seda.", rationale: "Incorreto.", correct: false },
+                        { text: "Dois ciclos por ano.", rationale: "Correto! Duas gerações anuais.", correct: true }
+                    ]
+                },
+                {
+                    q: "Líderes mundiais na produção?",
+                    hint: "Continente de origem.",
+                    options: [
+                        { text: "China, EUA, Tailândia.", rationale: "EUA não produzem muito.", correct: false },
+                        { text: "Japão, Brasil, Turquia.", rationale: "Japão reduziu.", correct: false },
+                        { text: "Itália, França, Egito.", rationale: "Processadores, não produtores base.", correct: false },
+                        { text: "China, Índia, Uzbequistão.", rationale: "Correto! Dominam o mercado.", correct: true }
+                    ]
+                },
+                {
+                    q: "Descoberta científica com Bombyx mori?",
+                    hint: "Comunicação química.",
+                    options: [
+                        { text: "ADN.", rationale: "Não específico.", correct: false },
+                        { text: "Evolução.", rationale: "Não foi o foco.", correct: false },
+                        { text: "Antibióticos.", rationale: "Vieram de fungos.", correct: false },
+                        { text: "Bombicol (feromona).", rationale: "Correto! Primeira feromona isolada.", correct: true }
+                    ]
+                },
+                {
+                    q: "Característica da sericicultura no Brasil?",
+                    hint: "Tipo de propriedade.",
+                    options: [
+                        { text: "Automatizada.", rationale: "Requer trabalho manual.", correct: false },
+                        { text: "Multinacionais.", rationale: "Feita por agricultores.", correct: false },
+                        { text: "Mercado interno.", rationale: "É para exportação.", correct: false },
+                        { text: "Pequenas propriedades familiares.", rationale: "Correto! 'Vales de seda'.", correct: true }
+                    ]
+                },
+                {
+                    q: "Cor dos ovos até à eclosão?",
+                    hint: "Começa claro.",
+                    options: [
+                        { text: "Amarelos para brancos.", rationale: "Inverso.", correct: false },
+                        { text: "Brancos para amarelos.", rationale: "Correto! Ganham cor com o tempo.", correct: true },
+                        { text: "Pretos para transparentes.", rationale: "Incorreto.", correct: false },
+                        { text: "Verdes.", rationale: "Incorreto.", correct: false }
+                    ]
+                },
+                {
+                    q: "Controlo da produção no séc. I d.C.?",
+                    hint: "Fator ambiental.",
+                    options: [
+                        { text: "Folhas transgénicas.", rationale: "Impossível na época.", correct: false },
+                        { text: "Ajuste da temperatura.", rationale: "Correto! Acelera/retarda o ciclo.", correct: true },
+                        { text: "Importação romana.", rationale: "Inverso.", correct: false },
+                        { text: "Desenrolar mecânico.", rationale: "Inovação biológica foi chave.", correct: false }
+                    ]
+                },
+                {
+                    q: "Como chegou o segredo a Bizâncio?",
+                    hint: "Dissimulado num objeto.",
+                    options: [
+                        { text: "Vendido.", rationale: "Era segredo de estado.", correct: false },
+                        { text: "Contrabando em bambu.", rationale: "Correto! Monges esconderam os ovos.", correct: true },
+                        { text: "Presente.", rationale: "Nunca seria dado.", correct: false },
+                        { text: "Espionagem de manuais.", rationale: "Precisavam dos ovos biológicos.", correct: false }
+                    ]
+                },
+                {
+                    q: "Nome romano para Chineses?",
+                    hint: "Derivado de 'seda'.",
+                    options: [
+                        { text: "Zhongguo.", rationale: "Nome chinês.", correct: false },
+                        { text: "Cathay.", rationale: "Nome medieval.", correct: false },
+                        { text: "Seres.", rationale: "Correto! 'Povo da seda'.", correct: true },
+                        { text: "Han.", rationale: "Dinastia.", correct: false }
+                    ]
+                },
+                {
+                    q: "O que ativa na larva antes do casulo?",
+                    hint: "Produz a seda.",
+                    options: [
+                        { text: "Defesa.", rationale: "Não é o foco.", correct: false },
+                        { text: "Asas.", rationale: "Apenas na pupa.", correct: false },
+                        { text: "Reprodução.", rationale: "Apenas adulto.", correct: false },
+                        { text: "Glândulas sericígenas.", rationale: "Correto! Produzem a fibroína.", correct: true }
+                    ]
+                },
+                {
+                    q: "Lei sobre seda na Coreia antiga?",
+                    hint: "Distinção social.",
+                    options: [
+                        { text: "Receita exportação.", rationale: "Foco social.", correct: false },
+                        { text: "Distinção de classe.", rationale: "Correto! Proibido a classes baixas.", correct: true },
+                        { text: "Promover algodão.", rationale: "Incorreto.", correct: false },
+                        { text: "Caráter sagrado.", rationale: "Incorreto.", correct: false }
+                    ]
+                }
+            ];
+
+            // --- DADOS: JOGOS (GRUPOS DE CORRESPONDÊNCIA) ---
+            const matchingGroups = [
+                {
+                    title: "Biologia Básica",
+                    items: [
+                        {id: "t1", term: "Bombyx mori", def: "Nome científico do bicho-da-seda"},
+                        {id: "t2", term: "Morus alba", def: "Alimento exclusivo (Folhas de amoreira)"},
+                        {id: "t3", term: "Sericicultura", def: "Criação de bichos-da-seda"}
+                    ]
+                },
+                {
+                    title: "Ciclo de Vida",
+                    items: [
+                        {id: "t4", term: "Pupa", def: "Fase de metamorfose no casulo"},
+                        {id: "t5", term: "Univoltina", def: "Apenas uma geração por ano"},
+                        {id: "t6", term: "300 a 500", def: "Ovos postos por uma fêmea"}
+                    ]
+                },
+                {
+                    title: "História e Geografia",
+                    items: [
+                        {id: "t7", term: "China", def: "Berço histórico da seda (3600 a.C.)"},
+                        {id: "t8", term: "Leizu", def: "Imperatriz lendária que descobriu a seda"},
+                        {id: "t9", term: "Rota da Seda", def: "Rede comercial entre a Ásia e Europa"}
+                    ]
+                },
+                {
+                    title: "Ciência e Curiosidades",
+                    items: [
+                        {id: "t10", term: "Fibroína", def: "Proteína principal do fio de seda"},
+                        {id: "t11", term: "Bombyx mandarina", def: "Ancestral selvagem do bicho-da-seda"},
+                        {id: "t12", term: "Pebrina", def: "Doença estudada por Louis Pasteur"}
+                    ]
+                }
+            ];
+
+            // --- DADOS: FLASHCARDS ---
+            const flashcardsData = [
+                {q:"Nome científico do bicho-da-seda?", a:"Bombyx mori"},
+                {q:"Ancestral selvagem?", a:"Bombyx mandarina"},
+                {q:"Alimento exclusivo?", a:"Folhas de amoreira (Morus alba)"},
+                {q:"Odorante que atrai a larva?", a:"Cis-jasmona"},
+                {q:"Criação de bichos-da-seda chama-se...", a:"Sericicultura"},
+                {q:"Origem da sericicultura?", a:"China, c. 3600 a.C."},
+                {q:"Fases do ciclo de vida?", a:"Ovo, Larva, Pupa, Metamorfose, Mariposa, Reprodução"},
+                {q:"Cor dos ovos antes de eclodir?", a:"Amarelados"},
+                {q:"Ovos por fêmea?", a:"300 a 500"},
+                {q:"Tempo de incubação?", a:"10 a 14 dias"},
+                {q:"Ideia transmitida pela Rota?", a:"Budismo"},
+                {q:"Leis coreanas proibiam seda a quem?", a:"Classes baixas"},
+                {q:"Técnica do séc. I d.C.?", a:"Controlo de temperatura"},
+                {q:"Líder mundial atual?", a:"China"},
+                {q:"Destino da seda brasileira?", a:"Exportação (96%)"},
+                {q:"Prato de pupas coreano?", a:"Beondegi"},
+                {q:"Univoltina", a:"Uma geração por ano"},
+                {q:"Bivoltina", a:"Duas gerações por ano"},
+                {q:"Doença de 1865 (Pasteur)?", a:"Pebrina"}
+            ];
+
+            // --- NAVEGAÇÃO ---
+            const views = {
+                welcome: document.getElementById('section-welcome'),
+                study: document.getElementById('section-study'),
+                flashcards: document.getElementById('section-flashcards'),
+                quiz: document.getElementById('section-quiz'),
+                games: document.getElementById('section-games'),
+                report: document.getElementById('section-report')
+            };
+
+            const steps = {
+                welcome: document.getElementById('step-welcome'),
+                study: document.getElementById('step-study'),
+                flashcards: document.getElementById('step-flashcards'),
+                quiz: document.getElementById('step-quiz'),
+                games: document.getElementById('step-games'),
+                report: document.getElementById('step-report')
+            };
+
+            function goToSection(name) {
+                Object.values(views).forEach(el => el.classList.add('hidden'));
+                views[name].classList.remove('hidden');
+                updateProgressBar(name);
+                window.scrollTo({ top: 0, behavior: 'smooth' });
+            }
+
+            function updateProgressBar(activeSection) {
+                const order = ['welcome', 'study', 'flashcards', 'quiz', 'games', 'report'];
+                const idx = order.indexOf(activeSection);
+                order.forEach((key, i) => {
+                    steps[key].classList.remove('active', 'completed');
+                    if (i < idx) steps[key].classList.add('completed');
+                    if (i === idx) steps[key].classList.add('active');
+                });
+            }
+
+            // --- ACORDEÃO & SLIDES ---
+            document.querySelectorAll('.accordion-header').forEach(acc => {
+                acc.addEventListener('click', function() {
+                    this.classList.toggle('active');
+                    this.nextElementSibling.classList.toggle('open');
+                });
+            });
+
+            const slideImg = document.getElementById('current-slide-img');
+            const slideCounter = document.getElementById('slide-counter');
+            
+            function updateSlide() {
+                slideImg.src = `./slides${state.currentSlide}.jpg`;
+                slideCounter.textContent = `${state.currentSlide} / ${state.totalSlides}`;
+            }
+
+            document.getElementById('next-slide').onclick = () => {
+                state.currentSlide = state.currentSlide < state.totalSlides ? state.currentSlide + 1 : 1;
+                updateSlide();
+            };
+            document.getElementById('prev-slide').onclick = () => {
+                state.currentSlide = state.currentSlide > 1 ? state.currentSlide - 1 : state.totalSlides;
+                updateSlide();
+            };
+            
+            // Zoom Slide
+            const zoomOverlay = document.getElementById('zoom-overlay');
+            const zoomTarget = document.getElementById('zoom-img-target');
+            slideImg.onclick = () => { zoomTarget.src = slideImg.src; zoomOverlay.style.display = 'flex'; };
+            zoomOverlay.onclick = () => zoomOverlay.style.display = 'none';
+
+            // --- FLASHCARDS ---
+            const fcFront = document.getElementById('fc-front-text');
+            const fcBack = document.getElementById('fc-back-text');
+            const fcCounter = document.getElementById('fc-counter');
+            const fcInner = document.getElementById('flashcard-inner');
+
+            function loadFlashcard(i) {
+                state.isFlipped = false;
+                fcInner.classList.remove('flipped');
+                setTimeout(() => {
+                    fcFront.textContent = flashcardsData[i].q;
+                    fcBack.textContent = flashcardsData[i].a;
+                    fcCounter.textContent = `${i + 1} / ${flashcardsData.length}`;
+                }, 200);
+            }
+
+            document.getElementById('flashcard-element').onclick = () => {
+                state.isFlipped = !state.isFlipped;
+                fcInner.classList.toggle('flipped');
+            };
+            document.getElementById('fc-next').onclick = () => {
+                state.currentFlashcard = (state.currentFlashcard + 1) % flashcardsData.length;
+                loadFlashcard(state.currentFlashcard);
+            };
+            document.getElementById('fc-prev').onclick = () => {
+                state.currentFlashcard = (state.currentFlashcard - 1 + flashcardsData.length) % flashcardsData.length;
+                loadFlashcard(state.currentFlashcard);
+            };
+
+            // --- QUIZ LOGIC ---
+            const hintBtn = document.getElementById('hint-btn');
+            const hintContainer = document.getElementById('hint-container');
+            const hintText = document.getElementById('hint-text');
+
+            hintBtn.addEventListener('click', () => {
+                hintContainer.classList.toggle('hidden');
+            });
+
+            function initQuiz() {
+                state.currentQuestion = 0; 
+                state.quizScore = 0;
+                state.totalCorrect = 0;
+                state.totalWrong = 0;
+                // Baralhar perguntas
+                questionsPool.sort(() => Math.random() - 0.5);
+                state.maxQuestions = questionsPool.length;
+                updateScore();
+                loadQuestion();
+            }
+
+            function updateScore() {
+                document.getElementById('score-display').textContent = state.quizScore;
+            }
+
+            function loadQuestion() {
+                const qData = questionsPool[state.currentQuestion];
+                document.getElementById('quiz-badge').textContent = `Questão ${state.currentQuestion + 1} / ${state.maxQuestions}`;
+                document.getElementById('question-text').textContent = qData.q;
+                
+                // Dica
+                hintText.textContent = qData.hint;
+                hintContainer.classList.add('hidden');
+
+                const optsContainer = document.getElementById('options-container');
+                optsContainer.innerHTML = '';
+                
+                const feedbackBox = document.getElementById('feedback-container');
+                feedbackBox.innerHTML = '';
+                feedbackBox.classList.add('hidden');
+                feedbackBox.className = 'feedback-box hidden';
+                
+                document.getElementById('btn-next-question').classList.add('hidden');
+
+                // Opções
+                const shuffledOpts = [...qData.options].sort(() => Math.random() - 0.5);
+
+                shuffledOpts.forEach(opt => {
+                    const btn = document.createElement('button');
+                    btn.className = 'option-btn';
+                    btn.textContent = opt.text;
+                    btn.onclick = () => handleAnswer(btn, opt, qData);
+                    optsContainer.appendChild(btn);
+                });
+            }
+
+            function handleAnswer(selectedBtn, optionObj, qData) {
+                const allBtns = document.querySelectorAll('.option-btn');
+                allBtns.forEach(b => b.disabled = true);
+
+                const feedbackBox = document.getElementById('feedback-container');
+                const nextBtn = document.getElementById('btn-next-question');
+
+                if (optionObj.correct) {
+                    selectedBtn.classList.add('correct');
+                    state.quizScore += POINTS_PER_QUIZ;
+                    state.totalCorrect++;
+                    updateScore();
+                    feedbackBox.innerHTML = `<strong>✅ Correto!</strong><br>${optionObj.rationale}`;
+                    feedbackBox.className = 'feedback-box correct';
+                } else {
+                    selectedBtn.classList.add('wrong');
+                    state.totalWrong++;
+                    feedbackBox.innerHTML = `<strong>❌ Incorreto.</strong><br>${optionObj.rationale}`;
+                    feedbackBox.className = 'feedback-box wrong';
+                    
+                    allBtns.forEach(btn => {
+                        const originalOpt = qData.options.find(o => o.text === btn.textContent);
+                        if (originalOpt && originalOpt.correct) btn.classList.add('correct');
+                    });
+                }
+
+                feedbackBox.classList.remove('hidden');
+                nextBtn.classList.remove('hidden');
+
+                nextBtn.onclick = () => {
+                    state.currentQuestion++;
+                    if (state.currentQuestion < state.maxQuestions) {
+                        loadQuestion();
+                    } else {
+                        goToSection('games');
+                        initGames();
+                    }
+                };
+            }
+
+            // --- JOGOS (Logic por Grupos) ---
+            function initGames() {
+                state.gameScore = 0;
+                state.currentGameGroup = 0;
+                document.getElementById('game-feedback-area').classList.add('hidden');
+                loadGameGroup();
+            }
+
+            function loadGameGroup() {
+                // GUARD CLAUSE: Previne erros se o índice for inválido
+                if (state.currentGameGroup >= matchingGroups.length) return;
+
+                const group = matchingGroups[state.currentGameGroup];
+                state.currentGroupObj = group;
+
+                document.getElementById('game-subtitle').textContent = `Grupo ${state.currentGameGroup + 1} de ${matchingGroups.length}: ${group.title}`;
+                
+                // --- FIX: Limpar e ocultar feedback completamente ---
+                const fbArea = document.getElementById('game-feedback-area');
+                fbArea.innerHTML = ''; // Limpar conteúdo antigo
+                fbArea.className = 'feedback-box hidden'; // Resetar classes de cor
+                fbArea.classList.add('hidden'); 
+                // ---------------------------------------------------
+                
+                // Reset UI
+                const termsPool = document.getElementById('terms-pool');
+                const defsPool = document.getElementById('definitions-pool');
+                termsPool.innerHTML = ''; defsPool.innerHTML = '';
+                document.getElementById('btn-check-game').classList.remove('hidden');
+                document.getElementById('btn-next-game').classList.add('hidden');
+                document.getElementById('btn-finish-games').classList.add('hidden');
+                
+                // Renderizar Itens
+                const shuffledItems = [...group.items].sort(() => Math.random() - 0.5);
+                shuffledItems.forEach(item => {
+                    const el = document.createElement('div');
+                    el.className = 'draggable-item';
+                    el.textContent = item.term;
+                    el.draggable = true;
+                    el.dataset.id = item.id;
+                    el.ondragstart = e => { e.dataTransfer.setData('text', e.target.dataset.id); };
+                    termsPool.appendChild(el);
+                });
+
+                // Renderizar Zonas
+                const shuffledDefs = [...group.items].sort(() => Math.random() - 0.5);
+                shuffledDefs.forEach(item => {
+                    const zone = document.createElement('div');
+                    zone.className = 'drop-zone';
+                    zone.dataset.matchId = item.id;
+                    
+                    const text = document.createElement('div');
+                    text.className = 'drop-zone-text';
+                    text.textContent = item.def;
+                    zone.appendChild(text);
+
+                    // Drop Events
+                    zone.ondragover = e => { e.preventDefault(); zone.style.background = '#e0e7ff'; };
+                    zone.ondragleave = () => { if(!zone.dataset.filled) zone.style.background = '#f8fafc'; };
+                    zone.ondrop = e => {
+                        e.preventDefault();
+                        const id = e.dataTransfer.getData('text');
+                        
+                        // Remover item anterior se houver
+                        if(zone.dataset.filled) {
+                            const oldId = zone.dataset.filled;
+                            const oldEl = document.querySelector(`.draggable-item[data-id="${oldId}"]`);
+                            if(oldEl) oldEl.style.display = 'block';
+                        }
+
+                        // Colocar novo item
+                        const draggedEl = document.querySelector(`.draggable-item[data-id="${id}"]`);
+                        if(draggedEl) {
+                            zone.style.background = '#fff';
+                            zone.dataset.filled = id;
+                            draggedEl.style.display = 'none';
+                            
+                            // Visual indication in zone
+                            let contentEl = zone.querySelector('.dropped-content');
+                            if(!contentEl) {
+                                contentEl = document.createElement('div');
+                                contentEl.className = 'dropped-content';
+                                contentEl.style.fontWeight = 'bold';
+                                contentEl.style.color = 'var(--cor-primaria)';
+                                zone.appendChild(contentEl);
+                            }
+                            contentEl.textContent = `📎 ${draggedEl.textContent}`;
+                        }
+                    };
+                    defsPool.appendChild(zone);
+                });
+            }
+
+            document.getElementById('btn-check-game').onclick = () => {
+                const group = state.currentGroupObj;
+                const zones = document.querySelectorAll('.drop-zone');
+                let groupCorrect = 0;
+                let groupWrong = 0;
+                let feedbackDetails = [];
+
+                zones.forEach(zone => {
+                    const filledId = zone.dataset.filled;
+                    const correctId = zone.dataset.matchId;
+                    const correctItem = group.items.find(i => i.id === correctId);
+
+                    if (filledId === correctId) {
+                        // Correto
+                        state.gameScore += POINTS_PER_MATCH;
+                        state.totalCorrect++;
+                        groupCorrect++;
+                        zone.className = 'drop-zone filled-correct';
+                        zone.innerHTML += `<span style="color:#064e3b; font-weight:bold; display:block; margin-top:5px;">✓ Correto!</span>`;
+                    } else {
+                        // Errado ou Vazio
+                        state.totalWrong++;
+                        groupWrong++;
+                        zone.className = 'drop-zone filled-wrong';
+                        
+                        // Encontrar o termo que devia estar aqui
+                        const correctTerm = correctItem.term;
+                        zone.innerHTML += `<span style="color:#991b1b; font-size:0.85rem; display:block; margin-top:5px;">❌ Era: ${correctTerm}</span>`;
+                        
+                        if (filledId) {
+                             const wrongItem = group.items.find(i => i.id === filledId);
+                             feedbackDetails.push(`Colocaste <b>${wrongItem.term}</b> em "<em>${correctItem.def}</em>".`);
+                        } else {
+                             feedbackDetails.push(`Não respondeste a "<em>${correctItem.def}</em>".`);
+                        }
+                    }
+                });
+
+                // Preparar Feedback para a próxima tela
+                const feedbackArea = document.getElementById('game-feedback-area');
+                feedbackArea.innerHTML = `
+                    <h4>Feedback (${group.title})</h4>
+                    <p>Acertaste <b>${groupCorrect}</b> de ${group.items.length}.</p>
+                    ${groupWrong > 0 ? '<ul style="margin-top:0.5rem; font-size:0.9rem; color:#dc2626;"><li>' + feedbackDetails.join('</li><li>') + '</li></ul>' : '<p style="color:green;">Parabéns! Tudo certo.</p>'}
+                `;
+                feedbackArea.className = groupWrong === 0 ? 'feedback-box correct' : 'feedback-box wrong';
+                feedbackArea.classList.remove('hidden');
+
+                document.getElementById('btn-check-game').classList.add('hidden');
+                
+                if (state.currentGameGroup < matchingGroups.length - 1) {
+                    document.getElementById('btn-next-game').classList.remove('hidden');
+                } else {
+                    document.getElementById('btn-finish-games').classList.remove('hidden');
+                }
+            };
+
+            document.getElementById('btn-next-game').onclick = () => {
+                // GUARD CLAUSE: Só avança se não estiver no último grupo
+                if (state.currentGameGroup < matchingGroups.length - 1) {
+                    state.currentGameGroup++;
+                    loadGameGroup();
+                    // Ocultar feedback e mover para o topo
+                    document.getElementById('game-feedback-area').classList.add('hidden');
+                    window.scrollTo({ top: 0, behavior: 'smooth' });
+                }
+            };
+
+            // --- RELATÓRIO FINAL ---
+            document.getElementById('btn-finish-games').onclick = () => {
+                goToSection('report');
+                document.getElementById('report-name').textContent = state.user || 'Visitante';
+
+                // Cálculos
+                const totalQuizPoints = state.maxQuestions * POINTS_PER_QUIZ;
+                const totalGamePoints = matchingGroups.reduce((acc, g) => acc + (g.items.length * POINTS_PER_MATCH), 0);
+                const maxPossibleScore = totalQuizPoints + totalGamePoints;
+                
+                const currentTotalScore = state.quizScore + state.gameScore;
+                
+                // Percentagem Global
+                let pct = Math.round((currentTotalScore / maxPossibleScore) * 100);
+                if (pct > 100) pct = 100;
+
+                // Percentagem Quiz
+                let pctQuiz = Math.round((state.quizScore / totalQuizPoints) * 100);
+                if (isNaN(pctQuiz)) pctQuiz = 0; // Proteção contra divisão por zero
+                
+                // Percentagem Games
+                let pctGame = Math.round((state.gameScore / totalGamePoints) * 100);
+                if (isNaN(pctGame)) pctGame = 0; // Proteção contra divisão por zero
+
+                // Preencher UI Global
+                document.getElementById('final-score').textContent = `${pct}%`;
+                document.getElementById('total-correct').textContent = state.totalCorrect;
+                document.getElementById('total-wrong').textContent = state.totalWrong;
+
+                // Preencher UI Detalhada
+                document.getElementById('report-quiz-score').innerHTML = `${state.quizScore} pts<br><span style="font-size:0.8em; color:#666;">(${pctQuiz}%)</span>`;
+                document.getElementById('report-game-score').innerHTML = `${state.gameScore} pts<br><span style="font-size:0.8em; color:#666;">(${pctGame}%)</span>`;
+
+                // Classificação Qualitativa
+                let classification = "";
+                let badgeColor = "";
+                let msg = "";
+
+                if (pct < 50) {
+                    classification = "Insuficiente";
+                    badgeColor = "#dc2626"; // Vermelho
+                    msg = "Ainda tens muito a descobrir sobre a seda. Volta a estudar os cartões e tenta de novo!";
+                } else if (pct < 70) {
+                    classification = "Suficiente";
+                    badgeColor = "#d97706"; // Laranja
+                    msg = "Já conheces o básico, mas alguns detalhes escaparam. Bom esforço!";
+                } else if (pct < 90) {
+                    classification = "Bom";
+                    badgeColor = "#2563eb"; // Azul
+                    msg = "Muito bem! Tens um conhecimento sólido sobre a história e biologia da seda.";
+                } else if (pct < 100) {
+                    classification = "Muito Bom";
+                    badgeColor = "#059669"; // Verde
+                    msg = "Excelente desempenho! És quase um perito na Rota da Seda.";
+                } else {
+                    classification = "Excelente";
+                    badgeColor = "#7c3aed"; // Roxo
+                    msg = "Perfeito! És um verdadeiro Mestre da Seda! 🏆";
+                }
+
+                const badge = document.getElementById('classification-badge');
+                badge.textContent = classification;
+                badge.style.background = badgeColor;
+                document.getElementById('report-msg').textContent = msg;
+            };
+
+            // --- INICIALIZAÇÃO ---
+            document.getElementById('btn-start').onclick = () => {
+                const name = document.getElementById('student-name').value;
+                if(!name) return alert('Por favor, diz-nos o teu nome!');
+                state.user = name;
+                goToSection('study');
+            };
+            document.getElementById('btn-to-flashcards').onclick = () => { loadFlashcard(0); goToSection('flashcards'); };
+            document.getElementById('btn-to-quiz').onclick = () => { initQuiz(); goToSection('quiz'); };
+            document.getElementById('btn-restart').onclick = () => location.reload();
+        });
+    </script>
+</body>
+</html>
